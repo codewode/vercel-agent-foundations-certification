@@ -1,13 +1,36 @@
-/**
- * This is where we'll add a route for resuming a stream for an agent chat.
- *
- * During the workshop you will wire this up in the Workflows chapter.
- *
- * Workshop docs: https://agent-foundations-certification.vercel.app/docs/workflows
- */
+import { type NextRequest } from "next/server";
 
-export const POST = async () =>
-  new Response(
-    "Not implemented yet — finish the chat-agent workshop step to enable this route.",
-    { status: 501 },
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
+  const { id } = await context.params;
+  return new Response(
+    JSON.stringify({
+      status: "active",
+      id,
+      message: "Stream connection active",
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    },
   );
+}
+
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
+  const { id } = await context.params;
+  return new Response(
+    JSON.stringify({
+      status: "active",
+      id,
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+}

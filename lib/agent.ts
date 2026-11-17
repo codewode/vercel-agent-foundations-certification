@@ -1,12 +1,30 @@
-/**
- * This is where your agent will live.
- *
- * During the workshop you'll define a `ToolLoopAgent` here, give it a model
- * and instructions, and later add tools (web search, sandbox, etc.). The
- * route handler in `app/api/chat/route.ts` and the `useChat` call in
- * `components/agent-chat.tsx` will both import from this file.
- *
- * Workshop docs: https://agent-foundations-certification.vercel.app/docs/chat-agent
- */
+import { ToolLoopAgent } from "ai";
+import { shoppingTools, adminTools } from "@/lib/tools";
+import { SHOPPING_AGENT_INSTRUCTIONS } from "@/lib/workflows/chat-flow";
+import { ADMIN_AGENT_BASE_INSTRUCTIONS } from "@/lib/workflows/admin-chat-flow";
 
-export {};
+export { SHOPPING_AGENT_INSTRUCTIONS, ADMIN_AGENT_BASE_INSTRUCTIONS };
+
+export const shoppingAgent = new ToolLoopAgent({
+  model: "openai/gpt-4o",
+  instructions: SHOPPING_AGENT_INSTRUCTIONS,
+  tools: shoppingTools,
+});
+
+export const adminAgent = new ToolLoopAgent({
+  model: "openai/gpt-4o",
+  instructions: ADMIN_AGENT_BASE_INSTRUCTIONS,
+  tools: adminTools,
+});
+
+export function createAdminAgentWithMemory(memoryContext?: string) {
+  const instructions = memoryContext
+    ? `${ADMIN_AGENT_BASE_INSTRUCTIONS}\n\nPersistent Memory / Saved Context:\n${memoryContext}`
+    : ADMIN_AGENT_BASE_INSTRUCTIONS;
+
+  return new ToolLoopAgent({
+    model: "openai/gpt-4o",
+    instructions,
+    tools: adminTools,
+  });
+}
