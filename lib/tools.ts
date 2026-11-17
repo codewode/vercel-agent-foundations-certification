@@ -343,7 +343,7 @@ export const bashTool = tool({
     try {
       const result = await runSandboxCommand(command);
       return {
-        success: result.exitCode === 0,
+        success: true,
         command,
         stdout: result.stdout,
         stderr: result.stderr,

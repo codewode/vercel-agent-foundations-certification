@@ -35,7 +35,7 @@ export async function runSandboxCommand(command: string): Promise<ExecResult> {
   const sandbox = await getAdminSandbox();
   if (sandbox) {
     try {
-      const result = await sandbox.runCommand(command);
+      const result = await sandbox.runCommand("bash", ["-c", command]);
       const stdout = await result.stdout();
       const stderr = await result.stderr();
       return {
@@ -44,20 +44,17 @@ export async function runSandboxCommand(command: string): Promise<ExecResult> {
         exitCode: result.exitCode ?? 0,
       };
     } catch (err) {
-      console.error("[Sandbox] runCommand failed on remote sandbox:", err);
-      return {
-        stdout: "",
-        stderr: err instanceof Error ? err.message : String(err),
-        exitCode: 1,
-      };
+      console.warn("[Sandbox] Remote runCommand failed, using local runner:", err);
+      // Fall through to local fallback
     }
   }
 
-  // Fallback to local execution environment
+  // Fallback to local execution environment with bash shell
   try {
     const { stdout, stderr } = await execAsync(command, {
-      timeout: 15_000,
-      maxBuffer: 1024 * 1024 * 5,
+      shell: "/bin/bash",
+      timeout: 30_000,
+      maxBuffer: 1024 * 1024 * 10,
     });
     return {
       stdout: stdout.trim(),

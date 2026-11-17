@@ -139,6 +139,19 @@ export function AdminAgentChat() {
                             );
                           }
 
+                          if (toolName === "bash" && toolPart.output) {
+                            return (
+                              <SandboxExecutionCard
+                                key={`tool-bash-${index}`}
+                                command={toolPart.output.command || "command"}
+                                stdout={toolPart.output.stdout}
+                                stderr={toolPart.output.stderr || toolPart.errorText}
+                                exitCode={toolPart.output.exitCode ?? (toolPart.state === "output-error" ? 1 : 0)}
+                                durationMs={toolPart.output.durationMs}
+                              />
+                            );
+                          }
+
                           if (
                             toolPart.state === "output-error" ||
                             toolPart.output?.success === false
@@ -155,18 +168,6 @@ export function AdminAgentChat() {
                           }
 
                           if (toolPart.state === "output-available") {
-                            if (toolName === "bash" && toolPart.output) {
-                              return (
-                                <SandboxExecutionCard
-                                  key={`tool-bash-${index}`}
-                                  command={toolPart.output.command}
-                                  stdout={toolPart.output.stdout}
-                                  stderr={toolPart.output.stderr}
-                                  exitCode={toolPart.output.exitCode}
-                                  durationMs={toolPart.output.durationMs}
-                                />
-                              );
-                            }
 
                             if (
                               toolName === "getSupportTickets" &&
