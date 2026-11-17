@@ -198,12 +198,17 @@ export function AgentChat() {
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="border-t bg-card p-3">
+      <div className="border-t bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shrink-0">
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputBody>
             <PromptInputTextarea
               value={input}
               onChange={(e) => setInput(e.currentTarget.value)}
+              onFocus={(e) => {
+                setTimeout(() => {
+                  e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 250);
+              }}
               placeholder="Ask for products, sizes, stock, or returns..."
               disabled={isGenerating}
             />

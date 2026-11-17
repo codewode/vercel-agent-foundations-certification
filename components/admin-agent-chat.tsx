@@ -287,7 +287,7 @@ export function AdminAgentChat() {
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="flex flex-col gap-2.5 border-t bg-card p-3">
+      <div className="flex flex-col gap-2.5 border-t bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shrink-0">
         {messages.length === 0 && (
           <Suggestions>
             {SUGGESTIONS.map((s) => (
@@ -304,6 +304,11 @@ export function AdminAgentChat() {
             <PromptInputTextarea
               value={input}
               onChange={(e) => setInput(e.currentTarget.value)}
+              onFocus={(e) => {
+                setTimeout(() => {
+                  e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 250);
+              }}
               placeholder="Ask the admin agent about operations, inventory, tickets, sales…"
               disabled={isGenerating}
             />

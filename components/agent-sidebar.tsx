@@ -15,7 +15,7 @@ export function AgentSidebar() {
           Ship It Shop Agent
         </div>
       </SidebarHeader>
-      <SidebarContent className="overflow-hidden p-0">
+      <SidebarContent className="flex-1 min-h-0 overflow-hidden p-0">
         <AgentChat />
       </SidebarContent>
     </Sidebar>
