@@ -31,11 +31,75 @@ export interface ExecResult {
   exitCode: number;
 }
 
+function normalizeExecution(rawCommand: string): {
+  cmd: string;
+  args: string[];
+  shellCommand: string;
+} {
+  const trimmed = rawCommand.trim();
+
+  // 1. Explicit shell executable / binary
+  const knownExecutables =
+    /^(python3?|node|bash|sh|echo|cat|ls|curl|grep|awk|sed|find|npm|pnpm|git|mkdir|rm|touch|chmod|which|whoami|pwd|env|head|tail|sort|uniq|wc)\b/i;
+
+  if (knownExecutables.test(trimmed)) {
+    return { cmd: "bash", args: ["-c", trimmed], shellCommand: trimmed };
+  }
+
+  // 2. JavaScript / TypeScript code
+  const isJavaScript =
+    /^(const\s+|let\s+|var\s+|console\.log|function\s+|class\s+|import\s+.*from|export\s+)/.test(
+      trimmed,
+    );
+
+  if (isJavaScript) {
+    return {
+      cmd: "node",
+      args: ["-e", trimmed],
+      shellCommand: `node -e ${JSON.stringify(trimmed)}`,
+    };
+  }
+
+  // 3. Python code detection (e.g. `returns = {...}`, `import json`, `def ...`, dict comprehensions)
+  const isPython =
+    /(^|\n)\s*(import\s+|def\s+|class\s+|from\s+|print\(|[a-zA-Z_]\w*\s*=\s*[\{\[\(\d"'])|\bfor\b.*\bin\b.*:|\bif\b.*:/m.test(
+      trimmed,
+    ) || /\{.*:.*for.*in.*\}/.test(trimmed);
+
+  if (isPython) {
+    const lines = trimmed.split("\n");
+    const lastLineIdx = lines.findLastIndex((l) => l.trim().length > 0);
+    if (lastLineIdx !== -1) {
+      const lastLine = lines[lastLineIdx].trim();
+      if (
+        !lastLine.startsWith("print(") &&
+        !lastLine.includes("=") &&
+        !lastLine.endsWith(":") &&
+        !lastLine.startsWith("import ") &&
+        !lastLine.startsWith("return ")
+      ) {
+        lines[lastLineIdx] = `import pprint; pprint.pprint(${lastLine})`;
+      }
+    }
+    const script = lines.join("\n");
+    return {
+      cmd: "python3",
+      args: ["-c", script],
+      shellCommand: `python3 -c ${JSON.stringify(script)}`,
+    };
+  }
+
+  // Default to bash
+  return { cmd: "bash", args: ["-c", trimmed], shellCommand: trimmed };
+}
+
 export async function runSandboxCommand(command: string): Promise<ExecResult> {
+  const { cmd, args, shellCommand } = normalizeExecution(command);
   const sandbox = await getAdminSandbox();
+
   if (sandbox) {
     try {
-      const result = await sandbox.runCommand("bash", ["-c", command]);
+      const result = await sandbox.runCommand(cmd, args);
       const stdout = await result.stdout();
       const stderr = await result.stderr();
       return {
@@ -51,7 +115,7 @@ export async function runSandboxCommand(command: string): Promise<ExecResult> {
 
   // Fallback to local execution environment with bash shell
   try {
-    const { stdout, stderr } = await execAsync(command, {
+    const { stdout, stderr } = await execAsync(shellCommand, {
       shell: "/bin/bash",
       timeout: 30_000,
       maxBuffer: 1024 * 1024 * 10,

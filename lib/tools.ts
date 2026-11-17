@@ -332,11 +332,11 @@ export const getSalesAnalyticsTool = tool({
 
 export const bashTool = tool({
   description:
-    "Execute commands or data analysis scripts in the isolated Vercel Sandbox. Use this for performing joins, aggregations, computing return rates, finding low-stock top sellers, or calculating revenue numbers accurately.",
+    "Execute commands or data analysis scripts in the isolated Vercel Sandbox. Use this for performing joins, aggregations, computing return rates, finding low-stock top sellers, or calculating revenue numbers accurately. Supports shell commands (e.g. bash, node, python3) or Python/Node scripts with print outputs.",
   inputSchema: z.object({
     command: z
       .string()
-      .describe("Bash/shell command, or node script (e.g. `node -e '...'` or python script) to compute results"),
+      .describe("Command or script to execute (e.g. `python3 -c '...'`, `node -e '...'`, or shell commands with print statements)"),
   }),
   execute: async ({ command }) => {
     const start = Date.now();
